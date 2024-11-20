@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Route Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #000;
+            color: #0f0;
+            overflow-x: hidden;
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(0deg, transparent 24%, rgba(32, 255, 77, 0.05) 25%, rgba(32, 255, 77, 0.05) 26%, transparent 27%, transparent 74%, rgba(32, 255, 77, 0.05) 75%, rgba(32, 255, 77, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(32, 255, 77, 0.05) 25%, rgba(32, 255, 77, 0.05) 26%, transparent 27%, transparent 74%, rgba(32, 255, 77, 0.05) 75%, rgba(32, 255, 77, 0.05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            animation: backgroundScroll 5s linear infinite;
+            z-index: -1;
+        }
+        @keyframes backgroundScroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+        .game-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            border: 2px solid #0f0;
+            box-shadow: 0 0 20px #0f0;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px #0f0;
+            animation: glow 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #0f0; }
+            to { text-shadow: 0 0 20px #0f0; }
+        }
+        .question {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 5px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            box-shadow: 0 0 10px #0f0;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            flex: 1;
+            margin: 0 0.5rem;
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 0.75rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #000;
+            color: #0f0;
+            box-shadow: 0 0 10px #0f0;
+        }
+        .score {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+            text-shadow: 0 0 5px #0f0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .game-container {
+            animation: fadeIn 1s ease-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Route Game</h2>
+
+      <!-- Start Game Button -->
+      <button id="startGameBtn" class="btn-primary">Start Game</button>
+
+      <!-- Game Question -->
+      <div id="gameQuestion" style="display: none">
+        <p id="routeQuestion"></p>
+        <textarea
+          id="routeExplanation"
+          rows="4"
+          placeholder="Explain the route here..."
+        ></textarea>
+        <br />
+        <button id="getHintBtn" class="btn-secondary">Get Hint</button>
+        <button id="submitAnswerBtn" class="btn-primary">Submit Answer</button>
+      </div>
+
+      <!-- Score Display -->
+      <div id="scoreDisplay" style="display: none">
+        <h3>Your Score: <span id="score"></span>/100</h3>
+        <button id="newGameBtn" class="btn-primary">New Game</button>
+      </div>
+    </div>
+
+    <script>
+      let startLocation, endLocation;
+
+      // Start Game Button
+      document
+        .getElementById("startGameBtn")
+        .addEventListener("click", async function () {
+          const response = await fetch("/api/game/start", {
+            method: "POST",
+          });
+
+          const data = await response.json();
+          startLocation = data.start_location_name;
+          endLocation = data.end_location_name;
+
+          document.getElementById(
+            "routeQuestion"
+          ).textContent = `Tell me the route from ${startLocation} to ${endLocation}`;
+          document.getElementById("gameQuestion").style.display = "block";
+          document.getElementById("startGameBtn").style.display = "none";
+        });
+
+      // Get Hint Button
+      document
+        .getElementById("getHintBtn")
+        .addEventListener("click", async function () {
+          const userExplanation =
+            document.getElementById("routeExplanation").value;
+
+          const response = await fetch("/api/game/hint", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userInput: userExplanation,
+              startLocation: startLocation,
+              endLocation: endLocation,
+            }),
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            alert(`Hint: ${data.hint}`);
+          } else {
+            alert(data.error || "Failed to get hint");
+          }
+        });
+
+      // Submit Answer Button
+      document
+        .getElementById("submitAnswerBtn")
+        .addEventListener("click", async function () {
+          const userExplanation =
+            document.getElementById("routeExplanation").value;
+
+          const response = await fetch("/api/game/score", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userRoute: userExplanation,
+              startLocation,
+              endLocation,
+            }),
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            document.getElementById("score").textContent = data.score;
+            document.getElementById("scoreDisplay").style.display = "block";
+          } else {
+            alert(data.error || "Failed to calculate score");
+          }
+        });
+
+      // New Game Button
+      document
+        .getElementById("newGameBtn")
+        .addEventListener("click", function () {
+          document.getElementById("routeExplanation").value = "";
+          document.getElementById("gameQuestion").style.display = "none";
+          document.getElementById("scoreDisplay").style.display = "none";
+          document.getElementById("startGameBtn").style.display = "block";
+        });
+    </script>
+  </body>
+</html>

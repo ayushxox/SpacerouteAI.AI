@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpaceRouting AI - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #000;
+            color: #0f0;
+            overflow: hidden;
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(0deg, transparent 24%, rgba(32, 255, 77, 0.05) 25%, rgba(32, 255, 77, 0.05) 26%, transparent 27%, transparent 74%, rgba(32, 255, 77, 0.05) 75%, rgba(32, 255, 77, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(32, 255, 77, 0.05) 25%, rgba(32, 255, 77, 0.05) 26%, transparent 27%, transparent 74%, rgba(32, 255, 77, 0.05) 75%, rgba(32, 255, 77, 0.05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            animation: backgroundScroll 5s linear infinite;
+            z-index: -1;
+        }
+        @keyframes backgroundScroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+        .login-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px solid #0f0;
+            box-shadow: 0 0 20px #0f0;
+            width: 400px;
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+        h1 {
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+            text-shadow: 0 0 5px #0f0;
+            animation: glow 1.5s ease-in-out infinite alternate;
+            white-space: nowrap;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #0f0; }
+            to { text-shadow: 0 0 20px #0f0; }
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            border-radius: 5px;
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 10px #0f0;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 0.75rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #000;
+            color: #0f0;
+            box-shadow: 0 0 10px #0f0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="login-container">
+        <h1>SpaceRouting AI</h1>
+        <form id="loginForm" novalidate>
+            <input type="text" id="username" name="username" placeholder="Username" required>
+            <input type="password" id="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();  // Prevent the default form submission
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                alert('Please enter both username and password.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store the JWT token in localStorage (or cookies)
+                    localStorage.setItem('token', data.token);
+
+                    // Redirect to the game page
+                    window.location.href = '/game';
+                } else {
+                    alert(data.error || 'Login failed. Please check your credentials and try again.');
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                alert('An error occurred while logging in. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

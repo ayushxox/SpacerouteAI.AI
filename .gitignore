@@ -1,0 +1,8 @@
+# Node modules folder
+server/node_modules/
+
+# Environment variables file
+server/.env
+
+# VSCode settings folder
+.vscode/
